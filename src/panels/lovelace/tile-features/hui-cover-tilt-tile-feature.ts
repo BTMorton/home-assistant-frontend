@@ -6,9 +6,10 @@ import { supportsFeature } from "../../../common/entity/supports-feature";
 import "../../../components/tile/ha-tile-button";
 import {
   canCloseTilt,
-  canOpenTilt,
+  canCloseTiltUp,
   canStopTilt,
   CoverEntityFeature,
+  supportsCloseTiltUp,
 } from "../../../data/cover";
 import { HomeAssistant } from "../../../types";
 import { LovelaceTileFeature } from "../types";
@@ -38,18 +39,30 @@ class HuiCoverTiltTileFeature
     this._config = config;
   }
 
-  private _onOpenTap(ev): void {
+  private _onTiltUpTap(ev): void {
     ev.stopPropagation();
-    this.hass!.callService("cover", "open_cover_tilt", {
-      entity_id: this.stateObj!.entity_id,
-    });
+    if (supportsCloseTiltUp(this.stateObj) && this.stateObj.attributes.current_tilt_position! >= 50) {
+      this.hass!.callService("cover", "close_cover_tilt_up", {
+        entity_id: this.stateObj.entity_id,
+      });
+    } else {
+      this.hass!.callService("cover", "open_cover_tilt", {
+        entity_id: this.stateObj.entity_id,
+      });
+    }
   }
 
-  private _onCloseTap(ev): void {
+  private _onTiltDownTap(ev): void {
     ev.stopPropagation();
-    this.hass!.callService("cover", "close_cover_tilt", {
-      entity_id: this.stateObj!.entity_id,
-    });
+    if (supportsCloseTiltUp(this.stateObj) && this.stateObj.attributes.current_tilt_position! >= 50) {
+      this.hass!.callService("cover", "open_cover_tilt", {
+        entity_id: this.stateObj.entity_id,
+      });
+    } else {
+      this.hass!.callService("cover", "close_cover_tilt", {
+        entity_id: this.stateObj.entity_id,
+      });
+    }
   }
 
   private _onStopTap(ev): void {
@@ -72,8 +85,8 @@ class HuiCoverTiltTileFeature
                 .label=${this.hass.localize(
                   "ui.dialogs.more_info_control.cover.open_tilt_cover"
                 )}
-                @click=${this._onOpenTap}
-                .disabled=${!canOpenTilt(this.stateObj)}
+                @click=${this._onTiltUpTap}
+                .disabled=${!canCloseTiltUp(this.stateObj)}
               >
                 <ha-svg-icon .path=${mdiArrowTopRight}></ha-svg-icon>
               </ha-tile-button>
@@ -98,7 +111,7 @@ class HuiCoverTiltTileFeature
                 .label=${this.hass.localize(
                   "ui.dialogs.more_info_control.cover.close_tilt_cover"
                 )}
-                @click=${this._onCloseTap}
+                @click=${this._onTiltDownTap}
                 .disabled=${!canCloseTilt(this.stateObj)}
               >
                 <ha-svg-icon .path=${mdiArrowBottomLeft}></ha-svg-icon>

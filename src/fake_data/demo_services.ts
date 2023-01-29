@@ -1021,6 +1021,15 @@ export const demoServices: HassServices = {
         },
       },
     },
+    close_cover_tilt_up: {
+      description: "Close all or specified cover tilt upwards.",
+      fields: {
+        entity_id: {
+          description: "Name(s) of cover(s) to close tilt upwards.",
+          example: "cover.living_room",
+        },
+      },
+    },
     stop_cover_tilt: {
       description: "Stop all or specified cover.",
       fields: {

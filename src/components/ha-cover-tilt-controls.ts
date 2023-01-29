@@ -5,10 +5,11 @@ import { classMap } from "lit/directives/class-map";
 import { supportsFeature } from "../common/entity/supports-feature";
 import {
   canCloseTilt,
-  canOpenTilt,
+  canCloseTiltUp,
   canStopTilt,
   CoverEntity,
   CoverEntityFeature,
+  supportsCloseTiltUp,
 } from "../data/cover";
 import { HomeAssistant } from "../types";
 import "./ha-icon-button";
@@ -35,8 +36,8 @@ class HaCoverTiltControls extends LitElement {
           "ui.dialogs.more_info_control.cover.open_tilt_cover"
         )}
         .path=${mdiArrowTopRight}
-        @click=${this._onOpenTiltTap}
-        .disabled=${!canOpenTilt(this.stateObj)}
+        @click=${this._onTiltUpTap}
+        .disabled=${!canCloseTiltUp(this.stateObj)}
       ></ha-icon-button>
       <ha-icon-button
         class=${classMap({
@@ -63,23 +64,35 @@ class HaCoverTiltControls extends LitElement {
           "ui.dialogs.more_info_control.cover.close_tilt_cover"
         )}
         .path=${mdiArrowBottomLeft}
-        @click=${this._onCloseTiltTap}
+        @click=${this._onTiltDownTap}
         .disabled=${!canCloseTilt(this.stateObj)}
       ></ha-icon-button>`;
   }
 
-  private _onOpenTiltTap(ev): void {
+  private _onTiltUpTap(ev): void {
     ev.stopPropagation();
-    this.hass.callService("cover", "open_cover_tilt", {
-      entity_id: this.stateObj.entity_id,
-    });
+    if (supportsCloseTiltUp(this.stateObj) && this.stateObj.attributes.current_tilt_position! >= 50) {
+      this.hass.callService("cover", "close_cover_tilt_up", {
+        entity_id: this.stateObj.entity_id,
+      });
+    } else {
+      this.hass.callService("cover", "open_cover_tilt", {
+        entity_id: this.stateObj.entity_id,
+      });
+    }
   }
 
-  private _onCloseTiltTap(ev): void {
+  private _onTiltDownTap(ev): void {
     ev.stopPropagation();
-    this.hass.callService("cover", "close_cover_tilt", {
-      entity_id: this.stateObj.entity_id,
-    });
+    if (supportsCloseTiltUp(this.stateObj) && this.stateObj.attributes.current_tilt_position! >= 50) {
+      this.hass.callService("cover", "open_cover_tilt", {
+        entity_id: this.stateObj.entity_id,
+      });
+    } else {
+      this.hass.callService("cover", "close_cover_tilt", {
+        entity_id: this.stateObj.entity_id,
+      });
+    }
   }
 
   private _onStopTiltTap(ev): void {

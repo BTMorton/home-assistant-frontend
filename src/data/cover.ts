@@ -14,6 +14,7 @@ export const enum CoverEntityFeature {
   CLOSE_TILT = 32,
   STOP_TILT = 64,
   SET_TILT_POSITION = 128,
+  CLOSE_TILT_UP = 256,
 }
 
 export function isFullyOpen(stateObj: CoverEntity) {
@@ -31,11 +32,18 @@ export function isFullyClosed(stateObj: CoverEntity) {
 }
 
 export function isFullyOpenTilt(stateObj: CoverEntity) {
-  return stateObj.attributes.current_tilt_position === 100;
+  const canCloseUp = supportsFeature(stateObj, CoverEntityFeature.CLOSE_TILT_UP)
+  return canCloseUp
+    ? stateObj.attributes.current_tilt_position === 50
+    : stateObj.attributes.current_tilt_position === 100;
 }
 
 export function isFullyClosedTilt(stateObj: CoverEntity) {
   return stateObj.attributes.current_tilt_position === 0;
+}
+
+export function isFullyClosedUpTilt(stateObj: CoverEntity) {
+  return stateObj.attributes.current_tilt_position === 100;
 }
 
 export function isOpening(stateObj: CoverEntity) {
@@ -54,6 +62,7 @@ export function isTiltOnly(stateObj: CoverEntity) {
   const supportsTilt =
     supportsFeature(stateObj, CoverEntityFeature.OPEN_TILT) ||
     supportsFeature(stateObj, CoverEntityFeature.CLOSE_TILT) ||
+    supportsFeature(stateObj, CoverEntityFeature.CLOSE_TILT_UP) ||
     supportsFeature(stateObj, CoverEntityFeature.STOP_TILT);
   return supportsTilt && !supportsCover;
 }
@@ -92,6 +101,18 @@ export function canCloseTilt(stateObj: CoverEntity): boolean {
   }
   const assumedState = stateObj.attributes.assumed_state === true;
   return !isFullyClosedTilt(stateObj) || assumedState;
+}
+
+export function canCloseTiltUp(stateObj: CoverEntity): boolean {
+  if (stateObj.state === UNAVAILABLE) {
+    return false;
+  }
+  const assumedState = stateObj.attributes.assumed_state === true;
+  return !isFullyClosedUpTilt(stateObj) || assumedState;
+}
+
+export function supportsCloseTiltUp(stateObj: CoverEntity): boolean {
+  return supportsFeature(stateObj, CoverEntityFeature.CLOSE_TILT_UP);
 }
 
 export function canStopTilt(stateObj: CoverEntity): boolean {
